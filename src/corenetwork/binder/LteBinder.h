@@ -46,6 +46,7 @@ class LteBinder : public cSimpleModule
 
     unsigned int numBands_;  // number of logical bands
     std::map<IPv4Address, MacNodeId> macNodeIdToIPAddress_;
+    std::map<long, MacNodeId> macNodeIdToNonIPAddress_;
     std::map<MacNodeId, char*> macNodeIdToModuleName_;
     std::map<MacNodeId, LteMacBase*> macNodeIdToModule_;
     std::vector<MacNodeId> nextHop_; // MacNodeIdMaster --> MacNodeIdSlave
@@ -230,6 +231,19 @@ class LteBinder : public cSimpleModule
     }
 
     /**
+     * Returns the MacNodeId for the given non IP upper layer address
+     *
+     * @param address upper layer address
+     * @return MacNodeId corresponding to the non IP upper layer address
+     */
+    MacNodeId getMacNodeId(long address)
+    {
+        if (macNodeIdToNonIPAddress_.find(address) == macNodeIdToNonIPAddress_.end())
+            return 0;
+        return macNodeIdToNonIPAddress_[address];
+    }
+
+    /**
      * Returns the X2NodeId for the given IP address
      *
      * @param address IP address
@@ -248,6 +262,16 @@ class LteBinder : public cSimpleModule
     void setMacNodeId(IPv4Address address, MacNodeId nodeId)
     {
         macNodeIdToIPAddress_[address] = nodeId;
+    }
+
+    /**
+     * Associates the given upper layer Non IP address with the given MacNodeId.
+     *
+     * @param address upper address
+     */
+    void setMacNodeId(long address, MacNodeId nodeId)
+    {
+        macNodeIdToNonIPAddress_[address] = nodeId;
     }
     /**
      * Associates the given IP address with the given X2NodeId.
