@@ -16,6 +16,7 @@ package lte.stack.mac;
 moduleinterface LteMac {
     parameters:
         @display("i=block/mac");
+        bool isIpBased;
         string interfaceTableModule;
    
     gates:
@@ -33,6 +34,8 @@ simple LteMacBase like LteMac {
         @display("i=block/mac");
         string interfaceTableModule;
 
+        bool isIpBased=default(true);
+        
         //# Mac Queues
         int queueSize @unit(B) = default(2MiB);              // MAC Buffers queue size
         
@@ -119,14 +122,25 @@ simple LteMacBase like LteMac {
         output MAC_to_PHY;    // MAC to PHY
 }
 
+
+
 //
 // User Equipment MAC layer of LTE stack
 //
 simple LteMacUe extends LteMacBase 
 {
-   
     parameters:
         @class("LteMacUe");
+}
+
+//
+// Experimental User Equipment MAC layer of LTE stack
+//
+simple LteMacUeExperimental extends LteMacBase 
+{
+    parameters:
+        @class("LteMacUe");
+        isIpBased = false;
 }
 
 //
@@ -450,8 +464,15 @@ simple LteMacEnbD2D extends LteMacEnb
         @signal[macCellPacketLossD2D];
         @statistic[macCellPacketLossD2D](title="Mac Cell Packet Loss D2D"; unit=""; source="macCellPacketLossD2D"; record=mean);
 }
-      
 
+
+//
+// eNodeB MAC layer of LTE stack with support for D2D-capable UEs
+//
+simple LteMacEnbD2DExperimental extends LteMacEnbD2D{
+	isIpBased=false;
+}
+    
 //
 // Relay (UE side) MAC layer of LTE stack
 // Connection: eNodeB <--> Relay
