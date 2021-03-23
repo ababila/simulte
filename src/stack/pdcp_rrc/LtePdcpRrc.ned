@@ -17,6 +17,8 @@ moduleinterface LtePdcpRrc {
     parameters:
         @display("i=block/fork");
         int headerCompressedSize @unit(B);
+        string nodeType;
+        bool isIpBased;
 
     gates:
         inout DataPort;
@@ -39,6 +41,9 @@ simple LtePdcpRrcBase like LtePdcpRrc {
         int interactiveRlc @enum(TM, UM, AM, UNKNOWN_RLC_TYPE) = default(1);
         int backgroundRlc @enum(TM, UM, AM, UNKNOWN_RLC_TYPE) = default(1);
 
+		string nodeType;
+		bool isIpBased = default(true);
+		
         //# Statistics
         @signal[receivedPacketFromUpperLayer];
         @statistic[receivedPacketFromUpperLayer](source="receivedPacketFromUpperLayer"; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
@@ -75,6 +80,7 @@ simple LtePdcpRrcBase like LtePdcpRrc {
 //
 simple LtePdcpRrcUe extends LtePdcpRrcBase {
     @class("LtePdcpRrcUe");
+    nodeType="UE";
 }
 
 //
@@ -90,6 +96,7 @@ simple LtePdcpRrcUeD2D extends LtePdcpRrcUe {
 //
 simple LtePdcpRrcEnb extends LtePdcpRrcBase {
     @class("LtePdcpRrcEnb");
+    nodeType="ENODEB";
 }
 
 //

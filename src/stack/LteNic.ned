@@ -128,6 +128,107 @@ module LteNicBase like ILteNic
         upperLayerIn --> ip2lte.upperLayerIn;
 }
 
+// 
+// Base module for Non IP LTE Stack (exeperimetal).
+//
+// TODO: implement IWirelessNic
+module LteNicNonIpBase like ILteNic
+{
+    parameters:
+        @display("i=block/ifcard;bgb=250,444;bgl=3");
+        string interfaceTableModule;
+        string LtePdcpRrcType;      // One of: "LtePdcpRrcUe", "LtePdcpRrcEnb", "LtePdcpRrcRelayUe", "LtePdcpRrcRelayEnb"
+        string LteMacType;          // One of: "LteMacUe", "LteMacEnb", "LteMacRelayUe", "LteMacRelayEnb"
+        string LtePhyType;
+        string nodeType;
+
+        string LteChannelModelType = default("LteRealisticChannelModel");
+
+        bool d2dCapable;            // inherit the value from the parent module
+
+    gates:
+        //#
+        //# Gates connecting UE/eNB and LTE Stack
+        //#
+        //# Control Ports
+        inout EUTRAN_RRC_Sap;   // Control of RRC Layer
+        input upperLayerIn;
+        output upperLayerOut;
+        input radioIn @loose;  // to receive messages sent using sendDirect()
+        inout x2[] @loose;     // optional x2 manager
+
+    submodules:
+
+        // PDCP-RRC Layer
+        pdcpRrc: <LtePdcpRrcType> like LtePdcpRrc {
+            @display("p=150,142");
+            isIpBased=default(false);
+        }
+        // RLC Layer
+        rlc: LteRlc {
+            @display("p=150,227");
+            d2dCapable = d2dCapable;
+        }
+        // MAC Layer
+        mac: <LteMacType> like LteMac {
+            interfaceTableModule = interfaceTableModule;
+            @display("p=151,315");
+        }
+        // LtePhy submodule
+        phy: <LtePhyType> like LtePhy {
+            @display("p=151,390");
+            @class(LtePhyType);
+        }
+
+        channelModel: <LteChannelModelType> like LteChannelModelInterface {
+            @display("p=44.8,389.75998");
+        }
+
+    connections:
+        //# external: lower connection
+        pdcpRrc.DataPort$o --> upperLayerOut;
+        upperLayerIn --> pdcpRrc.DataPort$i;
+
+        //#
+        //# Internal LTE Stack Connections 
+        //# 
+
+        EUTRAN_RRC_Sap <--> pdcpRrc.EUTRAN_RRC_Sap;
+
+        //# PDCP <-> RLC
+        pdcpRrc.UM_Sap <--> rlc.UM_Sap;
+        pdcpRrc.AM_Sap <--> rlc.AM_Sap;
+        pdcpRrc.TM_Sap <--> rlc.TM_Sap;
+
+        //# RLC <-> MAC
+        rlc.RLC_to_MAC --> mac.RLC_to_MAC;
+        rlc.MAC_to_RLC <-- mac.MAC_to_RLC;
+
+        //#
+        //# Connections from LTE Stack to radio interface
+        //#
+        mac.MAC_to_PHY --> phy.upperGateIn;
+        mac.PHY_to_MAC <-- phy.upperGateOut;
+
+        //# external: lower connection
+        radioIn --> phy.radioIn;
+}
+
+//
+// Mode 4 D2D User Equipment of LTE stack
+//
+module LteNicUeD2DExperimental extends LteNicNonIpBase
+{
+    parameters:
+        LtePdcpRrcType = "LtePdcpRrcUeD2D";
+        LteMacType = default("LteMacUeExperimental");
+        LtePhyType = "LtePhyUeD2D";
+        bool d2dInitialMode = default(true);
+        d2dCapable = default(true);  
+        nodeType = default("UE");
+        string d2dPeerAddresses = default(""); // list of D2D peer UEs, separated by blank spaces
+}
+
 //
 // User Equipment of LTE stack
 //
@@ -225,6 +326,49 @@ module LteNicEnbD2D extends LteNicEnb
         d2dModeSelection: <d2dModeSelectionType> like D2DModeSelection {
             @display("p=60,68,row");
         }
+}
+
+//
+// Experimental eNodeB of LTE stack with support for D2D-capable UEs
+//
+module LteNicEnbD2DExperimental extends LteNicNonIpBase
+{
+    parameters:
+        LtePdcpRrcType = default("LtePdcpRrcEnbD2D");
+        LteMacType = default("LteMacEnbD2DExperimental");
+        LtePhyType = default("LtePhyEnbD2D");
+        d2dCapable = default(true);   // DO NOT CHANGE
+        string d2dModeSelectionType = default("D2DModeSelectionBase");
+
+        bool compEnabled = default(false);
+        string LteCompManagerType = default("LteCompManagerProportional");
+
+    submodules:
+
+        d2dModeSelection: <d2dModeSelectionType> like D2DModeSelection {
+            @display("p=60,68,row");
+        }
+        
+
+        //#
+        //# X2 manager
+        //#       
+        //x2Manager: LteX2Manager {
+          //  @display("p=60,227,row");
+        //}
+
+        //#
+        //# Modules exploiting X2 interface
+        //#
+        compManager: <LteCompManagerType> like LteCompManager if compEnabled {
+            @display("p=60,315,row");
+        }
+        //handoverManager: LteHandoverManager {
+          //  @display("p=60,142,row");
+        //}
+
+		connections allowunconnected:
+
 }
 
 //
