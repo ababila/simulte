@@ -249,6 +249,31 @@ void LtePdcpRrcBase::initialize(int stage)
         WATCH(headerCompressedSize_);
         WATCH(nodeId_);
         WATCH(lcid_);
+
+        isIpBased_ = getParentModule()->par("isIpBased").boolValue();
+
+        // Moved here from IP2Lte to remove dependency on IP2Lte for simulations that are not IP based.
+        if (!isIpBased_) {
+            std::string s = par("nodeType").stdstringValue();
+            LteNodeType nodeType = aToNodeType(s); // node type: can be ENODEB, UE
+            EV << "Node type: " << s << " -> " << nodeType << endl;
+
+            if (nodeType == ENODEB) {
+                // TODO not so elegant
+                cModule *enodeb = getParentModule()->getParentModule();
+                MacNodeId cellId = getBinder()->registerNode(enodeb, nodeType);
+                nodeId_ = cellId;
+            } else if (nodeType == UE) {
+                // TODO not so elegant
+                cModule *ue = getParentModule()->getParentModule();
+                nodeId_ = binder_->registerNode(ue, nodeType,
+                        ue->par("masterId"));
+                const char *moduleName =
+                        getParentModule()->getParentModule()->getFullName();
+                binder_->registerName(nodeId_, moduleName);
+            }
+        }
+
     }
 }
 

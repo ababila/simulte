@@ -94,6 +94,8 @@ void LteMacUe::initialize(int stage)
         cqiDlSiso2_ = registerSignal("cqiDlSiso2");
         cqiDlSiso3_ = registerSignal("cqiDlSiso3");
         cqiDlSiso4_ = registerSignal("cqiDlSiso4");
+
+        isIpBased_ = getParentModule()->par("isIpBased") ;
     }
     else if (stage == INITSTAGE_LINK_LAYER)
     {
@@ -120,15 +122,23 @@ void LteMacUe::initialize(int stage)
         amc->attachUser(nodeId_, UL);
         amc->attachUser(nodeId_, DL);
 
-        // find interface entry and use its address
-        IInterfaceTable *interfaceTable = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
-        // TODO: how do we find the LTE interface?
-        InterfaceEntry * interfaceEntry = interfaceTable->getInterfaceByName("wlan");
+        if(isIpBased_){
+            // find interface entry and use its address
+            IInterfaceTable *interfaceTable = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
+            // TODO: how do we find the LTE interface?
+            InterfaceEntry * interfaceEntry = interfaceTable->getInterfaceByName("wlan");
 
-        IPv4InterfaceData* ipv4if = interfaceEntry->ipv4Data();
-        if(ipv4if == NULL)
-            throw new cRuntimeError("no IPv4 interface data - cannot bind node %i", nodeId_);
-        binder_->setMacNodeId(ipv4if->getIPAddress(), nodeId_);
+            IPv4InterfaceData* ipv4if = interfaceEntry->ipv4Data();
+            if(ipv4if == NULL)
+                throw new cRuntimeError("no IPv4 interface data - cannot bind node %i", nodeId_);
+            binder_->setMacNodeId(ipv4if->getIPAddress(), nodeId_);
+        }else
+        {
+            //Consider simply the "nodeId_" as the non IP upper layer address associated to this node.
+            //The IP address format is used here  only to avoid override LteBinder::setMacNodeId method
+            IPv4Address upperLayerAddress = IPv4Address(nodeId_);
+            binder_->setMacNodeId(upperLayerAddress, nodeId_);
+        }
     }
 }
 

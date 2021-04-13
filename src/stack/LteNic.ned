@@ -29,6 +29,7 @@ import lte.stack.phy.ChannelModel.LteChannelModelInterface;
 //
 moduleinterface ILteNic extends IWirelessNic
 {
+    bool isIpBased;
     string nodeType;
         //bool d2dCapable;            // inherit the value from the parent module
     gates:
@@ -50,7 +51,7 @@ module LteNicBase like ILteNic
         string LteMacType;          // One of: "LteMacUe", "LteMacEnb", "LteMacRelayUe", "LteMacRelayEnb"
         string LtePhyType;
         string nodeType;
-
+		bool isIpBased = true;
         string LteChannelModelType = default("LteRealisticChannelModel");
 
         bool d2dCapable;            // inherit the value from the parent module
@@ -141,7 +142,7 @@ module LteNicNonIpBase like ILteNic
         string LteMacType;          // One of: "LteMacUe", "LteMacEnb", "LteMacRelayUe", "LteMacRelayEnb"
         string LtePhyType;
         string nodeType;
-
+		bool isIpBased = false;
         string LteChannelModelType = default("LteRealisticChannelModel");
 
         bool d2dCapable;            // inherit the value from the parent module
@@ -162,7 +163,6 @@ module LteNicNonIpBase like ILteNic
         // PDCP-RRC Layer
         pdcpRrc: <LtePdcpRrcType> like LtePdcpRrc {
             @display("p=150,142");
-            isIpBased=default(false);
         }
         // RLC Layer
         rlc: LteRlc {
@@ -215,18 +215,21 @@ module LteNicNonIpBase like ILteNic
 }
 
 //
-// Mode 4 D2D User Equipment of LTE stack
+// User Equipment of LTE stack
 //
-module LteNicUeD2DExperimental extends LteNicNonIpBase
+module LteNicNonIpUe extends LteNicNonIpBase
 {
     parameters:
-        LtePdcpRrcType = "LtePdcpRrcUeD2D";
-        LteMacType = default("LteMacUeExperimental");
-        LtePhyType = "LtePhyUeD2D";
-        bool d2dInitialMode = default(true);
-        d2dCapable = default(true);  
-        nodeType = default("UE");
-        string d2dPeerAddresses = default(""); // list of D2D peer UEs, separated by blank spaces
+        LtePdcpRrcType = default("LtePdcpRrcUe");
+        LteMacType = default("LteMacUe");
+        LtePhyType = default("LtePhyUe");
+        d2dCapable = default(false);          // DO NOT CHANGE
+
+    submodules:
+        // Feedback generator submodule
+        dlFbGen: LteDlFeedbackGenerator {
+            @display("p=50,50;is=s");
+        }
 }
 
 //
@@ -258,6 +261,21 @@ module LteNicUeD2D extends LteNicUe
         LtePhyType = default("LtePhyUeD2D");
         d2dCapable = default(true);             // DO NOT CHANGE
         bool d2dInitialMode = default(false);
+}
+
+//
+// Mode 4 D2D User Equipment of LTE stack
+//
+module LteNicUeD2DExperimental extends LteNicNonIpUe
+{
+    parameters:
+        LtePdcpRrcType = "LtePdcpRrcUeD2D";
+        LteMacType = default("LteMacUeExperimental");
+        LtePhyType = "LtePhyUeD2D";
+        bool d2dInitialMode = default(true);
+        d2dCapable = default(true);  
+        nodeType = default("UE");
+        string d2dPeerAddresses = default(""); // list of D2D peer UEs, separated by blank spaces
 }
 
 //
@@ -310,6 +328,18 @@ module LteNicEnb extends LteNicBase
         }
 }
 
+module LteNicNonIpEnb extends LteNicNonIpBase
+{
+        parameters:
+        LtePdcpRrcType = default("LtePdcpRrcEnb");
+        LteMacType = default("LteMacEnb");
+        LtePhyType = default("LtePhyEnb");
+        d2dCapable = default(false);          // DO NOT CHANGE
+       
+        //# X2 interface seems to rely on IP layer, so there is no need to related submodules. TODO implement non IP based X2 interface if handover feature is need.   
+        connections allowunconnected:
+}
+
 //
 // eNodeB of LTE stack with support for D2D-capable UEs
 //
@@ -331,7 +361,7 @@ module LteNicEnbD2D extends LteNicEnb
 //
 // Experimental eNodeB of LTE stack with support for D2D-capable UEs
 //
-module LteNicEnbD2DExperimental extends LteNicNonIpBase
+module LteNicEnbD2DExperimental extends LteNicNonIpEnb
 {
     parameters:
         LtePdcpRrcType = default("LtePdcpRrcEnbD2D");
@@ -340,35 +370,11 @@ module LteNicEnbD2DExperimental extends LteNicNonIpBase
         d2dCapable = default(true);   // DO NOT CHANGE
         string d2dModeSelectionType = default("D2DModeSelectionBase");
 
-        bool compEnabled = default(false);
-        string LteCompManagerType = default("LteCompManagerProportional");
-
     submodules:
 
         d2dModeSelection: <d2dModeSelectionType> like D2DModeSelection {
             @display("p=60,68,row");
         }
-        
-
-        //#
-        //# X2 manager
-        //#       
-        //x2Manager: LteX2Manager {
-          //  @display("p=60,227,row");
-        //}
-
-        //#
-        //# Modules exploiting X2 interface
-        //#
-        compManager: <LteCompManagerType> like LteCompManager if compEnabled {
-            @display("p=60,315,row");
-        }
-        //handoverManager: LteHandoverManager {
-          //  @display("p=60,142,row");
-        //}
-
-		connections allowunconnected:
-
 }
 
 //

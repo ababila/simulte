@@ -211,6 +211,9 @@ class LtePdcpRrcBase : public cSimpleModule
     /// Connection Identifier
     LogicalCid lcid_;
 
+    // Indicates if simulation is ipBased or not;
+    bool isIpBased_;
+
     /// Hash Table used for CID <-> Connection mapping
     ConnectionsTable* ht_;
 

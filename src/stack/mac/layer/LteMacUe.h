@@ -24,6 +24,8 @@ class LteMacUe : public LteMacBase
     // false if currentHarq_ counter needs to be initialized
     bool firstTx;
 
+    bool isIpBased_;
+
     LteSchedulerUeUl* lcgScheduler_;
 
     // configured grant - one each codeword

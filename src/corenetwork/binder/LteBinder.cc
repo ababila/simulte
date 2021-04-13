@@ -183,6 +183,18 @@ const char* LteBinder::getModuleNameByMacNodeId(MacNodeId nodeId)
     return macNodeIdToModuleName_[nodeId];
 }
 
+const MacNodeId LteBinder::getMacNodeIdByModuleName(const char* moduleName)
+{
+    for (auto it = macNodeIdToModuleName_.begin();  it != macNodeIdToModuleName_.end();) {
+        bool moduleNameMatches = !strcmp(it->second, moduleName);
+        if (moduleNameMatches)
+            return it->first;
+        else
+            it++;
+    }
+    throw cRuntimeError("LteBinder::getMacNodeIdByModuleName - MAC ID not found");
+}
+
 ConnectedUesMap LteBinder::getDeployedUes(MacNodeId localId, Direction dir)
 {
     Enter_Method_Silent("getDeployedUes");

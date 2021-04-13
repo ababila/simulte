@@ -16,7 +16,6 @@ package lte.stack.mac;
 moduleinterface LteMac {
     parameters:
         @display("i=block/mac");
-        bool isIpBased;
         string interfaceTableModule;
    
     gates:
@@ -34,8 +33,6 @@ simple LteMacBase like LteMac {
         @display("i=block/mac");
         string interfaceTableModule;
 
-        bool isIpBased=default(true);
-        
         //# Mac Queues
         int queueSize @unit(B) = default(2MiB);              // MAC Buffers queue size
         
@@ -134,16 +131,6 @@ simple LteMacUe extends LteMacBase
 }
 
 //
-// Experimental User Equipment MAC layer of LTE stack
-//
-simple LteMacUeExperimental extends LteMacBase 
-{
-    parameters:
-        @class("LteMacUe");
-        isIpBased = false;
-}
-
-//
 // D2D-capable User Equipment MAC layer of LTE stack
 //
 simple LteMacUeD2D extends LteMacUe {
@@ -172,6 +159,15 @@ simple LteMacUeD2D extends LteMacUe {
         
         @signal[rcvdD2DModeSwitchNotification];
         @statistic[rcvdD2DModeSwitchNotification](title="Reception of mode switch notification (tx side)"; unit=""; source="rcvdD2DModeSwitchNotification"; record=count,vector);
+}
+
+//
+// Experimental User Equipment MAC layer of LTE stack
+//
+simple LteMacUeExperimental extends LteMacUeD2D 
+{
+    parameters:
+        @class("LteMacUeD2D");
 }
 
 //
@@ -470,7 +466,7 @@ simple LteMacEnbD2D extends LteMacEnb
 // eNodeB MAC layer of LTE stack with support for D2D-capable UEs
 //
 simple LteMacEnbD2DExperimental extends LteMacEnbD2D{
-	isIpBased=false;
+      @class("LteMacEnbD2D"); 
 }
     
 //

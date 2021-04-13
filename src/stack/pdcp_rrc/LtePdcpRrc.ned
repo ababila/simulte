@@ -18,7 +18,6 @@ moduleinterface LtePdcpRrc {
         @display("i=block/fork");
         int headerCompressedSize @unit(B);
         string nodeType;
-        bool isIpBased;
 
     gates:
         inout DataPort;
@@ -42,7 +41,6 @@ simple LtePdcpRrcBase like LtePdcpRrc {
         int backgroundRlc @enum(TM, UM, AM, UNKNOWN_RLC_TYPE) = default(1);
 
 		string nodeType;
-		bool isIpBased = default(true);
 		
         //# Statistics
         @signal[receivedPacketFromUpperLayer];
