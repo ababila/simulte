@@ -74,6 +74,8 @@ void LtePhyUeD2D::handleSelfMessage(cMessage *msg)
 // TODO: ***reorganize*** method
 void LtePhyUeD2D::handleAirFrame(cMessage* msg)
 {
+    emit(receivedAirFrameSignal, msg);
+
     UserControlInfo* lteInfo = check_and_cast<UserControlInfo*>(msg->removeControlInfo());
 
     if (useBattery_)

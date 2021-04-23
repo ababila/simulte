@@ -60,6 +60,7 @@ simple LtePhyUe extends LtePhyBase {
          @class("LtePhyUe");
          
          @signal[servingCell];
+         @signal[receivedAirFrame];
          @statistic[servingCell](title="ID of the serving eNodeB for the UE"; unit=""; source="servingCell"; record=vector);
         
          //# CQI statistics

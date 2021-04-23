@@ -47,6 +47,8 @@ void LtePhyBase::initialize(int stage)
 
         multicastD2DRange_ = par("multicastD2DRange");
         enableMulticastD2DRangeCheck_ = par("enableMulticastD2DRangeCheck");
+
+        receivedAirFrameSignal = registerSignal("receivedAirFrame");
     }
     else if (stage == inet::INITSTAGE_PHYSICAL_ENVIRONMENT_2)
     {

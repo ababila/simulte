@@ -129,6 +129,7 @@ class LtePhyBase : public ChannelAccess
     simsignal_t averageCqiDl_;
     simsignal_t averageCqiUl_;
     simsignal_t averageCqiD2D_;
+    simsignal_t receivedAirFrameSignal;
 
     // User that are trasmitting (uplink)
     //receiveng(downlink) current packet
